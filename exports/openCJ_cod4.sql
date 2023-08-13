@@ -1,8 +1,8 @@
 -- --------------------------------------------------------
 -- Host:                         127.0.0.1
--- Server versie:                8.0.30-0ubuntu0.20.04.2 - (Ubuntu)
+-- Server version:               8.0.33-0ubuntu0.20.04.4 - (Ubuntu)
 -- Server OS:                    Linux
--- HeidiSQL Versie:              12.1.0.6537
+-- HeidiSQL Version:             12.5.0.6677
 -- --------------------------------------------------------
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -15,11 +15,11 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 
--- Databasestructuur van openCJ_cod4 wordt geschreven
+-- Dumping database structure for openCJ_cod4
 CREATE DATABASE IF NOT EXISTS `openCJ_cod4` /*!40100 DEFAULT CHARACTER SET ascii COLLATE ascii_bin */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `openCJ_cod4`;
 
--- Structuur van  tabel openCJ_cod4.checkpointBrothers wordt geschreven
+-- Dumping structure for table openCJ_cod4.checkpointBrothers
 CREATE TABLE IF NOT EXISTS `checkpointBrothers` (
   `cpID` int NOT NULL,
   `bigBrotherID` int NOT NULL,
@@ -29,9 +29,9 @@ CREATE TABLE IF NOT EXISTS `checkpointBrothers` (
   CONSTRAINT `FK__checkpoints_2` FOREIGN KEY (`bigBrotherID`) REFERENCES `checkpoints` (`cpID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.checkpointConnections wordt geschreven
+-- Dumping structure for table openCJ_cod4.checkpointConnections
 CREATE TABLE IF NOT EXISTS `checkpointConnections` (
   `cpID` int NOT NULL,
   `childcpID` int NOT NULL,
@@ -41,9 +41,9 @@ CREATE TABLE IF NOT EXISTS `checkpointConnections` (
   CONSTRAINT `FK__import_checkpoints_2` FOREIGN KEY (`childcpID`) REFERENCES `checkpoints` (`cpID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  functie openCJ_cod4.checkpointPassed wordt geschreven
+-- Dumping structure for function openCJ_cod4.checkpointPassed
 DELIMITER //
 CREATE FUNCTION `checkpointPassed`(
 	`_runID` INT,
@@ -51,34 +51,38 @@ CREATE FUNCTION `checkpointPassed`(
 	`_timePlayed` INT,
 	`_saveCount` INT,
 	`_loadCount` INT,
-	`_nadeJumps` INT,
-	`_nadeThrows` INT,
-	`_RPGJumps` INT,
-	`_RPGShots` INT,
-	`_doubleRPGs` INT,
+	`_explosiveJumps` INT,
+	`_explosiveLaunches` INT,
+	`_doubleExplosives` INT,
+	`_FPSMode` ENUM('125','mix','hax'),
+	`_usedEle` TINYINT,
+	`_usedAnyPct` TINYINT,
+	`_usedTAS` TINYINT,
 	`__instanceNumber` INT
 ) RETURNS int
 BEGIN
 	DECLARE _instanceNumber INT DEFAULT NULL;
 	SELECT instanceNumber INTO _instanceNumber FROM playerRuns WHERE runID = _runID;
 	IF(__instanceNumber = _instanceNumber) THEN
-		INSERT INTO checkpointStatistics (cpID, runID, timePlayed, saveCount, loadCount, nadeJumps, nadeThrows, RPGJumps, RPGShots, doubleRPGs) VALUES
-		(_cpID, _runID, _timePlayed, _saveCount, _loadCount, _nadeJumps, _nadeThrows, _RPGJumps, _RPGShots, _doubleRPGS) ON DUPLICATE KEY UPDATE
+		INSERT INTO checkpointStatistics (cpID, runID, timePlayed, saveCount, loadCount, explosiveJumps, explosiveLaunches, doubleExplosives, FPSMode, ele, anyPct, hardTAS) VALUES
+		(_cpID, _runID, _timePlayed, _saveCount, _loadCount, _explosiveJumps, _explosiveLaunches, _doubleExplosives, _FPSMode, _usedEle, _usedAnyPct, _usedTAS) ON DUPLICATE KEY UPDATE
 		timePlayed = IF(timePlayed < _timePlayed, _timePlayed, timePlayed),
 		saveCount = IF(timePlayed < _timePlayed, _saveCount, saveCount),
 		loadCount = IF(timePlayed < _timePlayed, _loadCount, loadCount),
-		nadeJumps = IF(timePlayed < _timePlayed, _nadeJumps, nadeJumps),
-		nadeThrows = IF(timePlayed < _timePlayed, _nadeThrows, nadeThrows),
-		RPGJumps = IF(timePlayed < _timePlayed, _RPGJumps, RPGJumps),
-		RPGShots = IF(timePlayed < _timePlayed, _RPGShots, RPGShots),
-		doubleRPGs = IF(timePlayed < _timePlayed, _doubleRPGs, doubleRPGs);
+		explosiveJumps = IF(timePlayed < _timePlayed, _explosiveJumps, explosiveJumps),
+		explosiveLaunches = IF(timePlayed < _timePlayed, _explosiveLaunches, explosiveLaunches),
+		doubleExplosives = IF(timePlayed < _timePlayed, _doubleExplosives, doubleExplosives),
+		FPSMode = IF(timePlayed < _timePlayed, _FPSMode, FPSMode),
+		ele = IF(timePlayed < _timePlayed, _usedEle, ele),
+		anyPct = IF(timePlayed < _timePlayed, _usedAnyPct, anyPct),
+		hardTAS = IF(timePlayed < _timePlayed, _usedTAS, hardTAS);
 		RETURN _instanceNumber;
 	END IF;
 	RETURN Null;
 END//
 DELIMITER ;
 
--- Structuur van  tabel openCJ_cod4.checkpoints wordt geschreven
+-- Dumping structure for table openCJ_cod4.checkpoints
 CREATE TABLE IF NOT EXISTS `checkpoints` (
   `cpID` int NOT NULL AUTO_INCREMENT,
   `x` int NOT NULL DEFAULT '0',
@@ -96,38 +100,58 @@ CREATE TABLE IF NOT EXISTS `checkpoints` (
   CONSTRAINT `FK_import_checkpoints_import_mapids` FOREIGN KEY (`mapID`) REFERENCES `mapids` (`mapID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=32375 DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.checkpointStatistics wordt geschreven
+-- Dumping structure for table openCJ_cod4.checkpointStatistics
 CREATE TABLE IF NOT EXISTS `checkpointStatistics` (
   `runID` int NOT NULL,
   `cpID` int NOT NULL,
   `timePlayed` int NOT NULL,
   `saveCount` int NOT NULL,
   `loadCount` int NOT NULL,
-  `nadeJumps` int NOT NULL,
-  `nadeThrows` int NOT NULL,
-  `RPGJumps` int NOT NULL,
-  `RPGShots` int NOT NULL,
-  `doubleRPGs` int NOT NULL,
+  `explosiveJumps` int NOT NULL,
+  `explosiveLaunches` int NOT NULL,
+  `doubleExplosives` int NOT NULL,
+  `FPSMode` enum('125','mix','hax') COLLATE ascii_bin NOT NULL DEFAULT 'hax',
+  `ele` tinyint NOT NULL DEFAULT '0',
+  `anyPct` tinyint NOT NULL DEFAULT '0',
+  `hardTAS` tinyint NOT NULL DEFAULT '0',
   UNIQUE KEY `runID_cpID` (`runID`,`cpID`),
   KEY `runID` (`runID`),
   KEY `cpID` (`cpID`),
   KEY `timePlayed` (`timePlayed`),
   KEY `saveCount` (`saveCount`),
   KEY `loadCount` (`loadCount`),
-  KEY `nadeJumps` (`nadeJumps`),
-  KEY `nadeThrows` (`nadeThrows`),
-  KEY `RPGJumps` (`RPGJumps`),
-  KEY `RPGShots` (`RPGShots`),
-  KEY `doubleRPGs` (`doubleRPGs`),
+  KEY `RPGJumps` (`explosiveJumps`) USING BTREE,
+  KEY `RPGShots` (`explosiveLaunches`) USING BTREE,
+  KEY `doubleRPGs` (`doubleExplosives`) USING BTREE,
+  KEY `FPSMode` (`FPSMode`),
+  KEY `ele` (`ele`),
+  KEY `anyPct` (`anyPct`),
+  KEY `hardTAS` (`hardTAS`),
   CONSTRAINT `FK_checkpointStatistics_checkpoints` FOREIGN KEY (`cpID`) REFERENCES `checkpoints` (`cpID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `FK_checkpointStatistics_playerRuns` FOREIGN KEY (`runID`) REFERENCES `playerRuns` (`runID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  functie openCJ_cod4.createNewAccount wordt geschreven
+-- Dumping structure for function openCJ_cod4.createEvent
+DELIMITER //
+CREATE FUNCTION `createEvent`(
+	`_rpg` TINYINT,
+	`_saveNum` INT,
+	`_loadNum` INT
+) RETURNS int
+BEGIN
+	DECLARE _eventID INT DEFAULT NULL;
+	SELECT LAST_INSERT_ID(NULL) INTO _eventID;
+	INSERT INTO demoEvents (rpg, saveNum, loadNum) VALUES (_rpg, _saveNum, _loadNum);
+	SELECT LAST_INSERT_ID() INTO _eventID;
+	RETURN _eventID;
+END//
+DELIMITER ;
+
+-- Dumping structure for function openCJ_cod4.createNewAccount
 DELIMITER //
 CREATE FUNCTION `createNewAccount`(
 	`_uid1` INT,
@@ -158,7 +182,7 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  functie openCJ_cod4.createRunID wordt geschreven
+-- Dumping structure for function openCJ_cod4.createRunID
 DELIMITER //
 CREATE FUNCTION `createRunID`(
 	`_playerID` INT,
@@ -167,13 +191,13 @@ CREATE FUNCTION `createRunID`(
 BEGIN
 	DECLARE _runID INT  DEFAULT NULL;
 	SELECT LAST_INSERT_ID(NULL) INTO _runID;
-	INSERT INTO playerRuns (playerID, mapID) VALUES (_playerID, _mapID);
+	INSERT INTO playerRuns (playerID, mapID, startTimeStamp) VALUES (_playerID, _mapID, NOW());
 	SELECT LAST_INSERT_ID() INTO _runID;
 	return _runID;
 END//
 DELIMITER ;
 
--- Structuur van  functie openCJ_cod4.createRunInstance wordt geschreven
+-- Dumping structure for function openCJ_cod4.createRunInstance
 DELIMITER //
 CREATE FUNCTION `createRunInstance`(
 	`_runID` INT
@@ -186,16 +210,29 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  tabel openCJ_cod4.geoIP wordt geschreven
+-- Dumping structure for table openCJ_cod4.demoEvents
+CREATE TABLE IF NOT EXISTS `demoEvents` (
+  `eventID` int NOT NULL AUTO_INCREMENT,
+  `rpg` tinyint DEFAULT NULL,
+  `saveNum` int DEFAULT NULL,
+  `loadNum` int DEFAULT NULL,
+  PRIMARY KEY (`eventID`),
+  KEY `saveNum` (`saveNum`),
+  KEY `loadNum` (`loadNum`)
+) ENGINE=InnoDB AUTO_INCREMENT=4840 DEFAULT CHARSET=ascii COLLATE=ascii_bin;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table openCJ_cod4.geoIP
 CREATE TABLE IF NOT EXISTS `geoIP` (
   `ip` int unsigned NOT NULL,
   `country` char(2) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '',
   PRIMARY KEY (`ip`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  functie openCJ_cod4.getCountry wordt geschreven
+-- Dumping structure for function openCJ_cod4.getCountry
 DELIMITER //
 CREATE FUNCTION `getCountry`(
 	`_ip` INT UNSIGNED
@@ -209,7 +246,7 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  functie openCJ_cod4.getIgnoredBy wordt geschreven
+-- Dumping structure for function openCJ_cod4.getIgnoredBy
 DELIMITER //
 CREATE FUNCTION `getIgnoredBy`(
 	`_playerID` INT
@@ -221,7 +258,7 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  functie openCJ_cod4.getMapID wordt geschreven
+-- Dumping structure for function openCJ_cod4.getMapID
 DELIMITER //
 CREATE FUNCTION `getMapID`(
 	`_mapname` CHAR(128)
@@ -234,7 +271,7 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  functie openCJ_cod4.getPlayerID wordt geschreven
+-- Dumping structure for function openCJ_cod4.getPlayerID
 DELIMITER //
 CREATE FUNCTION `getPlayerID`(
 	`_uid1` INT,
@@ -249,7 +286,7 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  functie openCJ_cod4.historyLoad wordt geschreven
+-- Dumping structure for function openCJ_cod4.historyLoad
 DELIMITER //
 CREATE FUNCTION `historyLoad`(
 	`_mapID` INT,
@@ -259,7 +296,7 @@ CREATE FUNCTION `historyLoad`(
 BEGIN
 	DECLARE _rows INT DEFAULT NULL;
 	DECLARE _instanceNumber INT DEFAULT NULL;
-	UPDATE playerRuns SET instanceNumber = instanceNumber + 1 WHERE runID = _runID AND playerID = _playerID AND mapID = _mapID AND finishcpID IS NULL;
+	UPDATE playerRuns SET instanceNumber = instanceNumber + 1 WHERE runID = _runID AND playerID = _playerID AND mapID = _mapID AND finishcpID IS NULL AND finishTimeStamp IS NULL;
 	SELECT ROW_COUNT() INTO _rows;
 	IF(_rows = 0)
 	THEN
@@ -271,7 +308,7 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  tabel openCJ_cod4.longCountry wordt geschreven
+-- Dumping structure for table openCJ_cod4.longCountry
 CREATE TABLE IF NOT EXISTS `longCountry` (
   `country` char(2) COLLATE ascii_bin NOT NULL,
   `longCountry` varchar(128) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'Unknown',
@@ -280,21 +317,23 @@ CREATE TABLE IF NOT EXISTS `longCountry` (
   KEY `continent` (`continent`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.mapids wordt geschreven
+-- Dumping structure for table openCJ_cod4.mapids
 CREATE TABLE IF NOT EXISTS `mapids` (
   `mapID` int NOT NULL AUTO_INCREMENT,
   `mapname` char(128) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `releaseDate` date DEFAULT NULL,
+  `inRotation` tinyint unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`mapID`),
   UNIQUE KEY `mapname` (`mapname`),
-  KEY `releaseDate` (`releaseDate`)
-) ENGINE=InnoDB AUTO_INCREMENT=2523 DEFAULT CHARSET=ascii COLLATE=ascii_bin;
+  KEY `releaseDate` (`releaseDate`),
+  KEY `inRotation` (`inRotation`)
+) ENGINE=InnoDB AUTO_INCREMENT=3967 DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.mapMappers wordt geschreven
+-- Dumping structure for table openCJ_cod4.mapMappers
 CREATE TABLE IF NOT EXISTS `mapMappers` (
   `mapID` int NOT NULL,
   `mapperID` int NOT NULL,
@@ -305,9 +344,9 @@ CREATE TABLE IF NOT EXISTS `mapMappers` (
   CONSTRAINT `FK_mapMappers_mappers` FOREIGN KEY (`mapperID`) REFERENCES `mappers` (`mapperID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.mappers wordt geschreven
+-- Dumping structure for table openCJ_cod4.mappers
 CREATE TABLE IF NOT EXISTS `mappers` (
   `mapperID` int NOT NULL AUTO_INCREMENT,
   `name` char(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
@@ -315,9 +354,9 @@ CREATE TABLE IF NOT EXISTS `mappers` (
   UNIQUE KEY `name` (`name`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=443 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.messages wordt geschreven
+-- Dumping structure for table openCJ_cod4.messages
 CREATE TABLE IF NOT EXISTS `messages` (
   `messageID` int NOT NULL AUTO_INCREMENT,
   `playerID` int NOT NULL,
@@ -327,11 +366,11 @@ CREATE TABLE IF NOT EXISTS `messages` (
   KEY `playerID` (`playerID`) USING BTREE,
   KEY `server` (`server`) USING BTREE,
   CONSTRAINT `FK_messages_playerInformation` FOREIGN KEY (`playerID`) REFERENCES `playerInformation` (`playerID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=197 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4943 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.playerIgnore wordt geschreven
+-- Dumping structure for table openCJ_cod4.playerIgnore
 CREATE TABLE IF NOT EXISTS `playerIgnore` (
   `playerID` int NOT NULL,
   `ignoreID` int NOT NULL,
@@ -342,9 +381,9 @@ CREATE TABLE IF NOT EXISTS `playerIgnore` (
   CONSTRAINT `FK_playerIgnore_playerInformation` FOREIGN KEY (`ignoreID`) REFERENCES `playerInformation` (`playerID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.playerInformation wordt geschreven
+-- Dumping structure for table openCJ_cod4.playerInformation
 CREATE TABLE IF NOT EXISTS `playerInformation` (
   `playerID` int NOT NULL AUTO_INCREMENT,
   `playerName` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '',
@@ -352,11 +391,11 @@ CREATE TABLE IF NOT EXISTS `playerInformation` (
   `mutedUntil` datetime DEFAULT NULL,
   PRIMARY KEY (`playerID`),
   KEY `playerName` (`playerName`)
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=ascii COLLATE=ascii_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.playerLogin wordt geschreven
+-- Dumping structure for table openCJ_cod4.playerLogin
 CREATE TABLE IF NOT EXISTS `playerLogin` (
   `playerID` int NOT NULL,
   `uid1` int NOT NULL,
@@ -368,78 +407,121 @@ CREATE TABLE IF NOT EXISTS `playerLogin` (
   CONSTRAINT `FK_playerLogin_playerInformation` FOREIGN KEY (`playerID`) REFERENCES `playerInformation` (`playerID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.playerRecordings wordt geschreven
+-- Dumping structure for table openCJ_cod4.playerRecordings
 CREATE TABLE IF NOT EXISTS `playerRecordings` (
   `runID` int NOT NULL,
   `instanceID` int NOT NULL,
   `frameNum` int NOT NULL,
-  `x` int NOT NULL,
-  `y` int NOT NULL,
-  `z` int NOT NULL,
-  `a` int NOT NULL,
-  `b` int NOT NULL,
-  `c` int NOT NULL,
-  `isKeyFrame` int NOT NULL,
+  `x` float NOT NULL DEFAULT '0',
+  `y` float NOT NULL DEFAULT '0',
+  `z` float NOT NULL DEFAULT '0',
+  `a` smallint unsigned NOT NULL DEFAULT '0',
+  `b` smallint unsigned NOT NULL DEFAULT '0',
+  `c` smallint unsigned NOT NULL DEFAULT '0',
+  `flags` smallint unsigned NOT NULL DEFAULT '0',
+  `isKeyFrame` int NOT NULL DEFAULT '0',
+  `eventID` int DEFAULT NULL,
+  `frameTime` tinyint unsigned NOT NULL DEFAULT '1',
   UNIQUE KEY `runID_frameNum` (`runID`,`frameNum`),
   KEY `instanceID` (`instanceID`),
-  KEY `isKeyFrame` (`isKeyFrame`)
+  KEY `isKeyFrame` (`isKeyFrame`),
+  KEY `eventID` (`eventID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.playerRuns wordt geschreven
+-- Dumping structure for table openCJ_cod4.playerRuns
 CREATE TABLE IF NOT EXISTS `playerRuns` (
   `runID` int NOT NULL AUTO_INCREMENT,
   `playerID` int NOT NULL,
   `mapID` int NOT NULL,
   `finishcpID` int DEFAULT NULL,
+  `runLabel` char(64) COLLATE ascii_bin NOT NULL DEFAULT '',
+  `archived` bit(1) NOT NULL DEFAULT b'0',
   `timePlayed` int NOT NULL DEFAULT '0',
   `saveCount` int NOT NULL DEFAULT '0',
   `loadCount` int NOT NULL DEFAULT '0',
-  `RPGShots` int NOT NULL DEFAULT '0',
-  `nadeThrows` int NOT NULL DEFAULT '0',
+  `explosiveLaunches` int NOT NULL DEFAULT '0',
   `instanceNumber` int NOT NULL DEFAULT '0',
+  `lastParsed` int NOT NULL DEFAULT '0',
+  `startTimeStamp` timestamp NOT NULL DEFAULT '2023-08-08 13:22:00',
+  `finishTimeStamp` timestamp NULL DEFAULT NULL,
+  `lastUsedTimeStamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`runID`),
   KEY `playerID` (`playerID`),
   KEY `mapID` (`mapID`),
   KEY `finishcpID` (`finishcpID`),
   KEY `instanceID` (`instanceNumber`) USING BTREE,
+  KEY `parsed` (`lastParsed`) USING BTREE,
+  KEY `timePlayed` (`timePlayed`),
+  KEY `saveCount` (`saveCount`),
+  KEY `loadCount` (`loadCount`),
+  KEY `explosiveLaunches` (`explosiveLaunches`),
+  KEY `finishTimeStamp` (`finishTimeStamp`),
+  KEY `archived` (`archived`) USING BTREE,
+  KEY `runLabel` (`runLabel`),
+  KEY `startTimeStamp` (`startTimeStamp`),
+  KEY `lastUsedTimeStamp` (`lastUsedTimeStamp`),
   CONSTRAINT `FK__playerInformation` FOREIGN KEY (`playerID`) REFERENCES `playerInformation` (`playerID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `FK_playerRuns_openCJ_cod4.checkpoints` FOREIGN KEY (`finishcpID`) REFERENCES `checkpoints` (`cpID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `FK_playerRuns_openCJ_cod4.mapids` FOREIGN KEY (`mapID`) REFERENCES `mapids` (`mapID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=581 DEFAULT CHARSET=ascii COLLATE=ascii_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=3258 DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.playerSaves wordt geschreven
+-- Dumping structure for table openCJ_cod4.playerSaves
 CREATE TABLE IF NOT EXISTS `playerSaves` (
   `runID` int NOT NULL,
   `saveNumber` int NOT NULL,
-  `x` int NOT NULL,
-  `y` int NOT NULL,
-  `z` int NOT NULL,
+  `x` decimal(10,4) NOT NULL DEFAULT '0.0000',
+  `y` decimal(10,4) NOT NULL DEFAULT '0.0000',
+  `z` decimal(10,4) NOT NULL DEFAULT '0.0000',
   `alpha` int NOT NULL,
   `beta` int NOT NULL,
   `gamma` int NOT NULL,
-  `RPGJumps` int NOT NULL,
-  `nadeJumps` int NOT NULL,
-  `doubleRPGs` int NOT NULL,
+  `explosiveJumps` int NOT NULL,
+  `doubleExplosives` int NOT NULL,
   `checkpointID` int DEFAULT NULL,
-  `fps` int NOT NULL,
   `flags` int NOT NULL,
   `entTargetName` varchar(50) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `numOfEnt` int DEFAULT NULL,
+  `FPSMode` enum('125','mix','hax') CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'hax',
   UNIQUE KEY `runID_saveNumber` (`runID`,`saveNumber`),
   KEY `runID` (`runID`),
   KEY `saveNumber` (`saveNumber`),
   CONSTRAINT `FK_playerSaves_playerRuns` FOREIGN KEY (`runID`) REFERENCES `playerRuns` (`runID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  tabel openCJ_cod4.playerSettings wordt geschreven
+-- Dumping structure for table openCJ_cod4.playerSaves_test
+CREATE TABLE IF NOT EXISTS `playerSaves_test` (
+  `runID` int NOT NULL,
+  `saveNumber` int NOT NULL,
+  `x` decimal(10,4) NOT NULL DEFAULT '0.0000',
+  `y` decimal(10,4) NOT NULL DEFAULT '0.0000',
+  `z` decimal(10,4) NOT NULL DEFAULT '0.0000',
+  `alpha` int NOT NULL,
+  `beta` int NOT NULL,
+  `gamma` int NOT NULL,
+  `explosiveJumps` int NOT NULL,
+  `doubleExplosives` int NOT NULL,
+  `checkpointID` int DEFAULT NULL,
+  `flags` int NOT NULL,
+  `entTargetName` varchar(50) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  `numOfEnt` int DEFAULT NULL,
+  `FPSMode` enum('125','mix','hax') CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'hax',
+  UNIQUE KEY `runID_saveNumber` (`runID`,`saveNumber`) USING BTREE,
+  KEY `runID` (`runID`) USING BTREE,
+  KEY `saveNumber` (`saveNumber`) USING BTREE,
+  CONSTRAINT `playerSaves_test_ibfk_1` FOREIGN KEY (`runID`) REFERENCES `playerRuns` (`runID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=ascii COLLATE=ascii_bin ROW_FORMAT=DYNAMIC;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table openCJ_cod4.playerSettings
 CREATE TABLE IF NOT EXISTS `playerSettings` (
   `playerID` int NOT NULL,
   `settingID` int NOT NULL,
@@ -451,9 +533,95 @@ CREATE TABLE IF NOT EXISTS `playerSettings` (
   CONSTRAINT `FK_playerSettings_settings` FOREIGN KEY (`settingID`) REFERENCES `settings` (`settingID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii COLLATE=ascii_bin COMMENT='Stores the configured (non-default) settings of players';
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  functie openCJ_cod4.runFinished wordt geschreven
+-- Dumping structure for function openCJ_cod4.prepareAllDemos
+DELIMITER //
+CREATE FUNCTION `prepareAllDemos`() RETURNS int
+BEGIN
+	DECLARE _done INT DEFAULT FALSE;
+	DECLARE _foobar INT DEFAULT NULL;
+	DECLARE _runID INT DEFAULT NULL;
+	DECLARE _cursor CURSOR FOR SELECT pr.runID FROM playerRuns pr INNER JOIN (SELECT MAX(frameNum) frame, runID FROM playerRecordings GROUP BY runID) mx ON mx.runID = pr.runID WHERE pr.finishcpID IS NOT NULL AND (pr.lastParsed IS NULL OR pr.lastParsed != mx.frame);
+
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET _done = TRUE;
+	OPEN _cursor;
+	read_loop: LOOP
+		FETCH _cursor INTO _runID;
+		IF _done THEN
+			LEAVE read_loop;
+		END IF;
+		SELECT prepareDemo(_runID) INTO _foobar;
+	END LOOP read_loop;
+	CLOSE _cursor;
+	RETURN 0;
+END//
+DELIMITER ;
+
+-- Dumping structure for function openCJ_cod4.prepareDemo
+DELIMITER //
+CREATE FUNCTION `prepareDemo`(
+	`_runID` INT
+) RETURNS int
+BEGIN
+	DECLARE _done INT DEFAULT FALSE;
+	DECLARE _keySaveNum INT DEFAULT NULL;
+	DECLARE _saveNum INT DEFAULT NULL;
+	DECLARE _frameNum INT DEFAULT NULL;
+	DECLARE _loadNum INT DEFAULT NULL;
+	DECLARE _lastParsed INT DEFAULT NULL;
+	DECLARE _lastFrame INT DEFAULT NULL;
+	DECLARE _cursor CURSOR FOR SELECT pr.frameNum, ev.saveNum, ev.loadNum FROM playerRecordings pr LEFT JOIN demoEvents ev ON pr.eventID = ev.eventID WHERE runID = _runID ORDER BY frameNum DESC;
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET _done = TRUE;
+
+	SELECT lastParsed INTO _lastParsed FROM playerRuns WHERE finishcpID IS NOT NULL AND runID = _runID;
+	SELECT MAX(frameNum) INTO _lastFrame FROM playerRecordings WHERE runID = _runID;
+	IF _lastParsed IS NULL THEN
+		RETURN 1;
+	ELSEIF _lastParsed = _lastFrame THEN
+		RETURN 2;
+	END IF;
+
+	OPEN _cursor;
+	read_loop: LOOP
+		FETCH _cursor INTO _frameNum, _saveNum, _loadNum;
+		IF _done THEN
+			LEAVE read_loop;
+		END IF;
+		IF _keySaveNum IS NOT NULL AND (_saveNum IS NOT NULL AND _saveNum = _keySaveNum) THEN
+			SELECT NULL INTO _keySaveNum;
+			UPDATE playerRecordings SET isKeyFrame = 0 WHERE frameNum = _frameNum AND runID = _runID;
+		ELSEIF _keySaveNum IS NULL THEN
+			UPDATE playerRecordings SET isKeyFrame = 1 WHERE frameNum = _frameNum AND runID = _runID;
+		ELSE
+			UPDATE playerRecordings SET isKeyFrame = 0 WHERE frameNum = _frameNum AND runID = _runID;
+		END IF;
+		IF _keySaveNum IS NULL AND _loadNum IS NOT NULL THEN
+			SET _keySaveNum = _loadNum;
+		END IF;
+	END LOOP read_loop;
+	CLOSE _cursor;
+	UPDATE playerRuns SET lastParsed = _lastFrame WHERE runID = _runID;
+	RETURN 0;
+END//
+DELIMITER ;
+
+-- Dumping structure for table openCJ_cod4.routes
+CREATE TABLE IF NOT EXISTS `routes` (
+  `cpID` int NOT NULL,
+  `routeName` varchar(50) COLLATE ascii_bin DEFAULT NULL,
+  `routeType` enum('normal','bonus','secret') CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'normal',
+  `difficulty` tinyint DEFAULT NULL COMMENT '0-10',
+  `routeShaderColor` enum('blue','cyan','green','orange','purple','red','yellow') CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  UNIQUE KEY `cpID` (`cpID`),
+  KEY `difficulty` (`difficulty`),
+  KEY `routeType` (`routeType`),
+  KEY `routeName` (`routeName`)
+) ENGINE=InnoDB DEFAULT CHARSET=ascii COLLATE=ascii_bin;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for function openCJ_cod4.runFinished
 DELIMITER //
 CREATE FUNCTION `runFinished`(
 	`_runID` INT,
@@ -462,7 +630,7 @@ CREATE FUNCTION `runFinished`(
 ) RETURNS int
 BEGIN
 	DECLARE _rows INT DEFAULT NULL;
-	UPDATE playerRuns SET finishcpID = _cpID WHERE finishcpID IS NULL AND runID = _runID AND instanceNumber = _instanceNumber;
+	UPDATE playerRuns SET finishcpID = _cpID, finishTimeStamp = NOW() WHERE finishcpID IS NULL AND runID = _runID AND instanceNumber = _instanceNumber;
 	SET _rows = ROW_COUNT();
 	IF _rows > 0 THEN
 		RETURN _instanceNumber;
@@ -471,27 +639,36 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  functie openCJ_cod4.savePosition wordt geschreven
+-- Dumping structure for table openCJ_cod4.runLabels
+CREATE TABLE IF NOT EXISTS `runLabels` (
+  `runID` int NOT NULL,
+  `runLabel` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  PRIMARY KEY (`runID`),
+  KEY `label` (`runLabel`) USING BTREE,
+  CONSTRAINT `FK_runLabels_playerRuns` FOREIGN KEY (`runID`) REFERENCES `playerRuns` (`runID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=ascii COLLATE=ascii_bin;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for function openCJ_cod4.savePosition
 DELIMITER //
 CREATE FUNCTION `savePosition`(
 	`_runID` INT,
 	`_instanceNumber` INT,
-	`_x` INT,
-	`_y` INT,
-	`_z` INT,
+	`_x` DECIMAL(10,4),
+	`_y` DECIMAL(10,4),
+	`_z` DECIMAL(10,4),
 	`_alpha` INT,
 	`_beta` INT,
 	`_gamma` INT,
 	`_timePlayed` INT,
 	`_saveCount` INT,
 	`_loadCount` INT,
-	`_RPGJumps` INT,
-	`_nadeJumps` INT,
-	`_doubleRPGs` INT,
-	`_RPGShots` INT,
-	`_nadeThrows` INT,
+	`_explosiveLaunches` INT,
+	`_explosiveJumps` INT,
+	`_doubleExplosives` INT,
 	`_checkpointID` INT,
-	`_fps` INT,
+	`_FPSMode` ENUM('125','mix', 'hax'),
 	`_flags` INT,
 	`_entTargetName` CHAR(64),
 	`_numOfEnt` INT
@@ -499,14 +676,14 @@ CREATE FUNCTION `savePosition`(
 BEGIN
 	DECLARE _rows INT DEFAULT NULL;
 	DECLARE _saveNumber INT DEFAULT NULL;
-	UPDATE playerRuns SET timePlayed = _timePlayed, saveCount = _saveCount, loadCount = _loadCount, RPGShots = _RPGShots, nadeThrows = _nadeThrows WHERE runID = _runID AND instanceNumber = _instanceNumber;
+	UPDATE playerRuns SET timePlayed = _timePlayed, saveCount = _saveCount, loadCount = _loadCount, explosiveLaunches = _explosiveLaunches WHERE runID = _runID AND instanceNumber = _instanceNumber;
 	SET _rows = ROW_COUNT();
 	IF _rows > 0 THEN
 		SELECT MAX(saveNumber) + 1 INTO _saveNumber FROM playerSaves WHERE runID = _runID;
 		IF _saveNumber IS NULL THEN
 			SET _saveNumber = 0;
 		END IF;
-		INSERT INTO playerSaves (saveNumber, runID, x, y, z, alpha, beta, gamma, RPGJumps, nadeJumps, doubleRPGs, checkpointID, fps, flags, entTargetName, numOfEnt) VALUES (_saveNumber, _runID, _x, _y, _z, _alpha, _beta, _gamma, _RPGJumps, _nadeJumps, _doubleRPGs, _checkpointID, _fps, _flags, _entTargetName, _numOfEnt);
+		INSERT INTO playerSaves (saveNumber, runID, x, y, z, alpha, beta, gamma, explosiveJumps, doubleExplosives, checkpointID, FPSMode, flags, entTargetName, numOfEnt) VALUES (_saveNumber, _runID, _x, _y, _z, _alpha, _beta, _gamma, _explosiveJumps, _doubleExplosives, _checkpointID, _FPSMode, _flags, _entTargetName, _numOfEnt);
 		RETURN _instanceNumber;
 	ELSE
 		RETURN NULL;
@@ -514,7 +691,67 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  procedure openCJ_cod4.setMapInfo wordt geschreven
+-- Dumping structure for function openCJ_cod4.savePosition_test
+DELIMITER //
+CREATE FUNCTION `savePosition_test`(
+	`_runID` INT,
+	`_instanceNumber` INT,
+	`_x` DECIMAL(10,4),
+	`_y` DECIMAL(10,4),
+	`_z` DECIMAL(10,4),
+	`_alpha` INT,
+	`_beta` INT,
+	`_gamma` INT,
+	`_timePlayed` INT,
+	`_saveCount` INT,
+	`_loadCount` INT,
+	`_explosiveLaunches` INT,
+	`_explosiveJumps` INT,
+	`_doubleExplosives` INT,
+	`_checkpointID` INT,
+	`_FPSMode` ENUM('125','mix', 'hax'),
+	`_flags` INT,
+	`_entTargetName` CHAR(64),
+	`_numOfEnt` INT
+) RETURNS int
+BEGIN
+	DECLARE _rows INT DEFAULT NULL;
+	DECLARE _saveNumber INT DEFAULT NULL;
+	UPDATE playerRuns SET timePlayed = _timePlayed, saveCount = _saveCount, loadCount = _loadCount, explosiveLaunches = _explosiveLaunches WHERE runID = _runID AND instanceNumber = _instanceNumber;
+	SET _rows = ROW_COUNT();
+	IF _rows > 0 THEN
+		SELECT MAX(saveNumber) + 1 INTO _saveNumber FROM playerSaves_test WHERE runID = _runID;
+		IF _saveNumber IS NULL THEN
+			SET _saveNumber = 0;
+		END IF;
+		INSERT INTO playerSaves_test (saveNumber, runID, x, y, z, alpha, beta, gamma, explosiveJumps, doubleExplosives, checkpointID, FPSMode, flags, entTargetName, numOfEnt) VALUES (_saveNumber, _runID, _x, _y, _z, _alpha, _beta, _gamma, _explosiveJumps, _doubleExplosives, _checkpointID, _FPSMode, _flags, _entTargetName, _numOfEnt);
+		RETURN _instanceNumber;
+	ELSE
+		RETURN NULL;
+	END IF;
+END//
+DELIMITER ;
+
+-- Dumping structure for function openCJ_cod4.saveRun
+DELIMITER //
+CREATE FUNCTION `saveRun`(
+	`_runID` INT,
+	`_instanceNumber` INT,
+	`_runLabel` CHAR(64)
+) RETURNS int
+    MODIFIES SQL DATA
+    COMMENT 'Allow user to save their run with an optional runlabel'
+BEGIN
+	DECLARE __runID INT DEFAULT NULL;
+	SELECT runID INTO __runID FROM playerRuns WHERE runID = _runID AND instanceNumber = _instanceNumber;
+	IF(__runID IS NOT NULL) THEN
+		INSERT IGNORE INTO runLabels (runID, runLabel) VALUES (__runID, _runLabel) ON DUPLICATE KEY UPDATE runLabel = _runLabel;
+	END IF;
+	RETURN __runID;
+END//
+DELIMITER ;
+
+-- Dumping structure for procedure openCJ_cod4.setMapInfo
 DELIMITER //
 CREATE PROCEDURE `setMapInfo`(
 	IN `_mapname` CHAR(128),
@@ -550,7 +787,7 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  procedure openCJ_cod4.setName wordt geschreven
+-- Dumping structure for procedure openCJ_cod4.setName
 DELIMITER //
 CREATE PROCEDURE `setName`(
 	IN `_playerID` INT,
@@ -561,7 +798,7 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  procedure openCJ_cod4.setPlayerSetting wordt geschreven
+-- Dumping structure for procedure openCJ_cod4.setPlayerSetting
 DELIMITER //
 CREATE PROCEDURE `setPlayerSetting`(
 	IN `_playerID` INT,
@@ -578,20 +815,20 @@ BEGIN
 END//
 DELIMITER ;
 
--- Structuur van  tabel openCJ_cod4.settings wordt geschreven
+-- Dumping structure for table openCJ_cod4.settings
 CREATE TABLE IF NOT EXISTS `settings` (
   `settingID` int NOT NULL AUTO_INCREMENT,
   `settingName` varchar(256) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '',
   PRIMARY KEY (`settingID`),
   UNIQUE KEY `settingName` (`settingName`)
-) ENGINE=InnoDB AUTO_INCREMENT=1022 DEFAULT CHARSET=ascii COLLATE=ascii_bin COMMENT='List of setting ids and names';
+) ENGINE=InnoDB AUTO_INCREMENT=7904 DEFAULT CHARSET=ascii COLLATE=ascii_bin COMMENT='List of setting ids and names';
 
--- Data exporteren was gedeselecteerd
+-- Data exporting was unselected.
 
--- Structuur van  functie openCJ_cod4.storeDemoFrame wordt geschreven
+-- Dumping structure for function openCJ_cod4.storeDemoFrame
 DELIMITER //
 CREATE FUNCTION `storeDemoFrame`(
-	`_playerID` INT,
+	`_runID` INT,
 	`_instanceID` INT,
 	`_frameNum` INT,
 	`_x` INT,
@@ -600,10 +837,15 @@ CREATE FUNCTION `storeDemoFrame`(
 	`_a` INT,
 	`_b` INT,
 	`_c` INT,
-	`_isKeyFrame` INT
+	`_flags` INT,
+	`_eventID` INT,
+	`_frameTime` INT
 ) RETURNS tinyint
 BEGIN
-	RETURN 1;
+	DECLARE _affectedRows INT DEFAULT NULL;
+	INSERT INTO playerRecordings (runID, instanceID, frameNum, `x`, `y`, `z`, a, b, c, flags, eventID, frameTime) VALUES (_runID, _instanceID, _frameNum, _x, _y, _z, _a, _b, _c, _flags, _eventID, _frameTime) ON DUPLICATE KEY UPDATE instanceID = IF(instanceID <= _instanceID, VALUES(instanceID), instanceID), `x` = IF(instanceID <= _instanceID, VALUES(`x`), `x`),  `y` = IF(instanceID <= _instanceID, VALUES(`y`), `y`),  `z` = IF(instanceID <= _instanceID, VALUES(`z`), `z`),  a = IF(instanceID <= _instanceID, VALUES(a), a),   b = IF(instanceID <= _instanceID, VALUES(b), b),   c = IF(instanceID <= _instanceID, VALUES(c), c),   flags = IF(instanceID <= _instanceID, VALUES(flags), flags), eventID = IF(instanceID <= _instanceID, VALUES(eventID), eventID), frameTime = IF(instanceID <= _instanceID, VALUES(frameTime), frameTime); 
+	SELECT ROW_COUNT() INTO _affectedRows;
+	RETURN _affectedRows; #is 2 if on duplicate kye, 0 if nothing affected (=nothing inserted, =instanceID has been upped)
 END//
 DELIMITER ;
 
