@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS `checkpoints` (
   `z` int NOT NULL DEFAULT '0',
   `radius` int DEFAULT '0',
   `onGround` tinyint NOT NULL DEFAULT '0',
+  `allowSave` tinyint NOT NULL DEFAULT '1',
   `mapID` int NOT NULL DEFAULT '0',
   `ender` char(64) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `elevate` tinyint NOT NULL DEFAULT '0',
